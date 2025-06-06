@@ -1,0 +1,19 @@
+stages:
+  - components
+
+default:
+  tags:
+    - infra
+
+components:update:
+  image: ruby:3.2.2
+  stage: components
+  resource_group: components:update
+  parallel:
+    matrix:
+      - COMPONENT:
+          - taurus
+  script:
+    - bin/pyxis components update $COMPONENT
+  rules:
+    - if: $UPDATE_COMPONENTS
