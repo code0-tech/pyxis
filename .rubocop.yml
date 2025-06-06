@@ -1,0 +1,15 @@
+AllCops:
+  TargetRubyVersion: 3.2.0
+  NewCops: enable
+
+Metrics:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/NumericLiterals:
+  Enabled: false
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
