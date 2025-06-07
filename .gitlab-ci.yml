@@ -12,6 +12,9 @@ components:update:
   parallel:
     matrix:
       - COMPONENT:
+          - aquila
+          - draco
+          - sagittarius
           - taurus
   script:
     - bundle install
