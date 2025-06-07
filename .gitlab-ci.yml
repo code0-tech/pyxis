@@ -5,19 +5,36 @@ default:
   tags:
     - infra
 
-components:update:
+.components:update:
   image: ruby:3.2.2
   stage: components
   resource_group: components:update
-  parallel:
-    matrix:
-      - COMPONENT:
-          - aquila
-          - draco
-          - sagittarius
-          - taurus
   script:
     - bundle install
     - bin/pyxis components update $COMPONENT
   rules:
     - if: $UPDATE_COMPONENTS == "true"
+
+components:update:aquila:
+  extends:
+    - .components:update
+  variables:
+    COMPONENT: aquila
+
+components:update:draco:
+  extends:
+    - .components:update
+  variables:
+    COMPONENT: draco
+
+components:update:sagittarius:
+  extends:
+    - .components:update
+  variables:
+    COMPONENT: sagittarius
+
+components:update:taurus:
+  extends:
+    - .components:update
+  variables:
+    COMPONENT: taurus
