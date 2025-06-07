@@ -9,6 +9,7 @@ components:update:
   image: ruby:3.2.2
   stage: components
   resource_group: components_update
+  timeout: 10 min
   parallel:
     matrix:
       - COMPONENT:
