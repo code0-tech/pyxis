@@ -8,7 +8,7 @@ default:
 components:update:
   image: ruby:3.2.2
   stage: components
-  resource_group: components:update
+  resource_group: components_update
   parallel:
     matrix:
       - COMPONENT:
