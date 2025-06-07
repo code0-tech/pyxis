@@ -46,7 +46,7 @@ module Pyxis
               branch: update_branch
             )
 
-            new_version_link = "[#{new_version[0...11]}](https://github.com/#{component.github_path}/commit/#{new_version})"
+            new_version_link = "[#{new_version[0...11]}](https://github.com/#{component.github_path}/commits/#{new_version})"
             pr = GithubClient.octokit.create_pull_request(
               Project::Reticulum.github_path,
               Project::Reticulum.default_branch,
