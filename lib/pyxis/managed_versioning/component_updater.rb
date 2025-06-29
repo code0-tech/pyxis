@@ -54,9 +54,9 @@ module Pyxis
               update_branch,
               "Update #{component.component_name} version to #{new_version[0...11]}",
               <<~DESCRIPTION
-              Update #{component.component_name} to #{new_version_link} as part of managed versioning
+                Update #{component.component_name} to #{new_version_link} as part of managed versioning
 
-              #{compare_link}
+                #{compare_link}
               DESCRIPTION
             )
             logger.info('Created pull request', pull_request_url: pr.html_url)
