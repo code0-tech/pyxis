@@ -47,12 +47,17 @@ module Pyxis
             )
 
             new_version_link = "[#{new_version[0...11]}](https://github.com/#{component.github_path}/commits/#{new_version})"
+            compare_link = "[Compare changes](https://github.com/#{component.github_path}/compare/#{current_version}...#{new_version})"
             pr = GithubClient.octokit.create_pull_request(
               Project::Reticulum.github_path,
               Project::Reticulum.default_branch,
               update_branch,
               "Update #{component.component_name} version to #{new_version[0...11]}",
-              "Update #{component.component_name} to #{new_version_link} as part of managed versioning"
+              <<~DESCRIPTION
+              Update #{component.component_name} to #{new_version_link} as part of managed versioning
+
+              #{compare_link}
+              DESCRIPTION
             )
             logger.info('Created pull request', pull_request_url: pr.html_url)
 
