@@ -47,7 +47,10 @@ module Pyxis
             )
 
             new_version_link = "[#{new_version[0...11]}](https://github.com/#{component.github_path}/commits/#{new_version})"
-            compare_link = "[Compare changes](https://github.com/#{component.github_path}/compare/#{current_version}...#{new_version})"
+
+            commit_count = GithubClient.octokit.compare(component.github_path, current_version, new_version).ahead_by
+            commit_range = "#{current_version[0...11]}...#{new_version[0...11]} (#{commit_count} commits)"
+            compare_link = "[#{commit_range}](https://github.com/#{component.github_path}/compare/#{current_version}...#{new_version})"
             pr = GithubClient.octokit.create_pull_request(
               Project::Reticulum.github_path,
               Project::Reticulum.default_branch,
