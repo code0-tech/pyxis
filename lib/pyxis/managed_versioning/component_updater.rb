@@ -40,19 +40,19 @@ module Pyxis
             GithubClient.octokit.update_contents(
               Project::Reticulum.github_path,
               version_file,
-              "Update #{component.component_name} version to #{new_version[0...11]}",
+              "Update #{component.component_name} version to #{present_sha(new_version)}",
               version_file_content.sha,
               new_version,
               branch: update_branch
             )
 
-            new_version_link = "[#{new_version[0...11]}](https://github.com/#{component.github_path}/commits/#{new_version})"
+            new_version_link = "[#{present_sha(new_version)}](https://github.com/#{component.github_path}/commits/#{new_version})"
 
             pr = GithubClient.octokit.create_pull_request(
               Project::Reticulum.github_path,
               Project::Reticulum.default_branch,
               update_branch,
-              "Update #{component.component_name} version to #{new_version[0...11]}",
+              "Update #{component.component_name} version to #{present_sha(new_version)}",
               <<~DESCRIPTION
                 Update #{component.component_name} to #{new_version_link} as part of managed versioning
 
@@ -120,6 +120,10 @@ module Pyxis
         logger.debug('Filtered commits for passing checks', commits: filtered_commits)
 
         filtered_commits
+      end
+
+      def present_sha(sha)
+        Presenter::CommitSha.new(sha).as_short
       end
     end
   end

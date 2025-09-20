@@ -12,7 +12,7 @@ module Pyxis
       end
 
       def as_markdown
-        "[#{current_version[0...11]}...#{new_version[0...11]}](#{compare_link}) (#{commit_amount} commits)"
+        "[#{present_sha(current_version)}...#{present_sha(new_version)}](#{compare_link}) (#{commit_amount} commits)"
       end
 
       private
@@ -23,6 +23,10 @@ module Pyxis
 
       def commit_amount
         GithubClient.octokit.compare(project.github_path, current_version, new_version).ahead_by
+      end
+
+      def present_sha(sha)
+        CommitSha.new(sha).as_short
       end
     end
   end
