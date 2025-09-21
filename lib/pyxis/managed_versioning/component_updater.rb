@@ -30,39 +30,7 @@ module Pyxis
 
           logger.info('Updating component version', current_version: current_version, new_version: new_version)
 
-          unless Pyxis::GlobalStatus.dry_run?
-            GithubClient.octokit.create_ref(
-              Project::Reticulum.github_path,
-              "refs/heads/#{update_branch}",
-              GithubClient.octokit.branch(Project::Reticulum.github_path, Project::Reticulum.default_branch).commit.sha
-            )
-
-            GithubClient.octokit.update_contents(
-              Project::Reticulum.github_path,
-              version_file,
-              "Update #{component.component_name} version to #{present_sha(new_version)}",
-              version_file_content.sha,
-              new_version,
-              branch: update_branch
-            )
-
-            new_version_link = "[#{present_sha(new_version)}](https://github.com/#{component.github_path}/commits/#{new_version})"
-
-            pr = GithubClient.octokit.create_pull_request(
-              Project::Reticulum.github_path,
-              Project::Reticulum.default_branch,
-              update_branch,
-              "Update #{component.component_name} version to #{present_sha(new_version)}",
-              <<~DESCRIPTION
-                Update #{component.component_name} to #{new_version_link} as part of managed versioning
-
-                #{Presenter::CommitRange.new(component, current_version, new_version).as_markdown}
-              DESCRIPTION
-            )
-            logger.info('Created pull request', pull_request_url: pr.html_url)
-
-            Pyxis::Services::AutoMergeService.new(Project::Reticulum, pr).execute
-          end
+          update_component_version(current_version, new_version) unless Pyxis::GlobalStatus.dry_run?
 
           logger.info('Finished component updater', current_version: current_version, new_version: new_version)
         end
@@ -85,6 +53,51 @@ module Pyxis
       end
 
       private
+
+      def update_component_version(current_version, new_version)
+        GithubClient.octokit.create_ref(
+          Project::Reticulum.github_path,
+          "refs/heads/#{update_branch}",
+          GithubClient.octokit.branch(Project::Reticulum.github_path, Project::Reticulum.default_branch).commit.sha
+        )
+
+        update_title = "Update #{component.component_name} version to #{present_sha(new_version)}"
+
+        GithubClient.octokit.update_contents(
+          Project::Reticulum.github_path,
+          version_file,
+          update_title,
+          version_file_content.sha,
+          new_version,
+          branch: update_branch
+        )
+
+        new_version_link = "[#{present_sha(new_version)}](https://github.com/#{component.github_path}/commits/#{new_version})"
+
+        pr = GithubClient.octokit.create_pull_request(
+          Project::Reticulum.github_path,
+          Project::Reticulum.default_branch,
+          update_branch,
+          update_title,
+          <<~DESCRIPTION
+            Update #{component.component_name} to #{new_version_link} as part of managed versioning
+
+            #{Presenter::CommitRange.new(component, current_version, new_version).as_markdown}
+          DESCRIPTION
+        )
+        logger.info('Created pull request', pull_request_url: pr.html_url)
+
+        if version_update_loop?(update_title)
+          GithubClient.octokit.add_comment(
+            Project::Reticulum.github_path,
+            pr.number,
+            '@code0-tech/delivery This component had already been updated to this version in the past. ' \
+            'Please check why this component is getting updated to this version again.'
+          )
+        else
+          Pyxis::Services::AutoMergeService.new(Project::Reticulum, pr).execute
+        end
+      end
 
       def update_branch_exists?
         GithubClient.octokit.branch(Project::Reticulum.github_path, update_branch).name == update_branch
@@ -120,6 +133,16 @@ module Pyxis
         logger.debug('Filtered commits for passing checks', commits: filtered_commits)
 
         filtered_commits
+      end
+
+      def version_update_loop?(update_title)
+        commits = GithubClient.without_auto_pagination(GithubClient.octokit) do |octokit|
+          octokit.list_commits(
+            Project::Reticulum.github_path,
+            path: version_file
+          )
+        end
+        commits.reverse.any? { |commit| commit.commit.message == update_title }
       end
 
       def present_sha(sha)
