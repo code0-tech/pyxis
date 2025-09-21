@@ -23,6 +23,14 @@ module Pyxis
         CLIENT_CONFIGS[instance][:octokit] ||= create_octokit(instance)
       end
 
+      def without_auto_pagination(octokit)
+        current_auto_paginate = octokit.instance_variable_get(:@auto_paginate)
+        octokit.instance_variable_set(:@auto_paginate, false)
+        yield octokit
+      ensure
+        octokit.instance_variable_set(:@auto_paginate, current_auto_paginate)
+      end
+
       private
 
       def create_octokit(instance)
