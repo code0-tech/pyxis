@@ -16,6 +16,7 @@ components:update:
           - aquila
           - draco
           - sagittarius
+          - sculptor
           - taurus
   script:
     - bundle install
