@@ -29,6 +29,7 @@ module Pyxis
       }
       faraday = Faraday.new(options)
       faraday.use Pyxis::DryRunEnforcer::FaradayBlocker
+      faraday.use Pyxis::Logger::FaradayLogger
 
       enhance_faraday(faraday)
 
