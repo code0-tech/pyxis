@@ -3,7 +3,19 @@
 module Pyxis
   module Commands
     class Components < Thor
-      desc 'update COMPONENT', 'Update a component in reticulum'
+      desc 'info [BUILD_ID]', 'Get the component versions for a reticulum build'
+      def info(build_id)
+        component_versions = ManagedVersioning::ComponentInfo.new(build_id).execute
+
+        SemanticLogger.flush
+
+        puts 'Versions of each component'
+        component_versions.each do |component, version|
+          puts "#{component}: #{version}"
+        end
+      end
+
+      desc 'update [COMPONENT]', 'Update a component in reticulum'
       def update(component)
         updater(component).execute
       end
@@ -11,9 +23,7 @@ module Pyxis
       desc 'list', 'List all available components'
       def list
         puts 'Available components:'
-        Pyxis::Project.constants.each do |project|
-          next if project == :Base
-
+        Pyxis::Project.components.each do |project|
           puts "- #{project.downcase}"
         end
       end

@@ -16,11 +16,19 @@ module Pyxis
           paths[:github]
         end
 
+        def api_gitlab_path
+          paths[:gitlab].gsub('/', '%2F')
+        end
+
         def component_name
           # noinspection RubyNilAnalysis
           name.split('::').last.downcase
         end
       end
+    end
+
+    def self.components
+      constants.reject { |c| %i[Base Reticulum].include?(c) }
     end
   end
 end
