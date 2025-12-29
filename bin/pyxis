@@ -3,4 +3,7 @@
 
 require_relative '../lib/pyxis'
 
-Pyxis::Cli.start(ARGV)
+result = Pyxis::Cli.start(ARGV)
+SemanticLogger.flush
+
+puts result

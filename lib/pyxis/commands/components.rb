@@ -3,29 +3,33 @@
 module Pyxis
   module Commands
     class Components < Thor
+      include PermissionHelper
+
       desc 'info [BUILD_ID]', 'Get the component versions for a reticulum build'
       def info(build_id)
         component_versions = ManagedVersioning::ComponentInfo.new(build_id).execute
 
-        SemanticLogger.flush
-
-        puts 'Versions of each component'
+        result = 'Versions of each component'
         component_versions.each do |component, version|
-          puts "#{component}: #{version}"
+          result += "\n#{component}: #{version}"
         end
+        result
       end
 
       desc 'update [COMPONENT]', 'Update a component in reticulum'
       def update(component)
+        assert_executed_by_schedule!
+
         updater(component).execute
       end
 
       desc 'list', 'List all available components'
       def list
-        puts 'Available components:'
+        result = 'Available components:'
         Pyxis::Project.components.each do |project|
-          puts "- #{project.downcase}"
+          result += "\n- #{project.downcase}"
         end
+        result
       end
 
       desc 'get_version COMPONENT', 'Get the current version of a component in reticulum'
