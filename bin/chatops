@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'stringio'
+require_relative '../lib/pyxis'
+
+original_stdout = $stdout
+stringio = StringIO.new
+$stdout = stringio
+
+start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second)
+config = { debug: true } # we want the error to be raised
+
+begin
+  result = Pyxis::Cli.start(ARGV, config)
+  successful = true
+rescue Thor::Error, Pyxis::Error => e
+  result = "#{e.class}\n#{e.message}"
+  successful = false
+end
+
+end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second)
+
+SemanticLogger.flush
+
+$stdout = original_stdout
+
+SECTION = 'chat_reply'
+
+puts "section_start:#{Time.now.to_i}:#{SECTION}\r\033[0K"
+
+puts "$ pyxis #{ARGV.join(' ')}"
+puts '```'
+puts
+
+puts result || stringio.string
+
+puts
+puts '```'
+puts "#{successful ? 'Finished' : 'Failed'} in #{(end_time - start_time).round(2)} seconds"
+
+puts "section_end:#{Time.now.to_i}:#{SECTION}\r\033[0K"
+
+exit(successful)

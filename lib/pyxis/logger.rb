@@ -45,7 +45,7 @@ end
 
 SemanticLogger.application = 'pyxis'
 SemanticLogger.default_level = ENV.fetch('LOG_LEVEL', 'debug').to_sym
-SemanticLogger.add_appender(io: $stdout, level: SemanticLogger.default_level,
+SemanticLogger.add_appender(io: $stderr, level: SemanticLogger.default_level,
                             formatter: Pyxis::Logger::NoProcessColorFormatter.new)
 
 SemanticLogger.push_tags('dry-run') if Pyxis::GlobalStatus.dry_run?
