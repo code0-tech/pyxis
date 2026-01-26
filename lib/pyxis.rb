@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'bundler'
+
+ENV['DISCORDRB_NONACL'] = 'true' # disable warning that libsodium is not available
 Bundler.require
 
 module Pyxis
