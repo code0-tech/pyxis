@@ -1,0 +1,122 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative '../lib/pyxis'
+require 'discordrb'
+require 'discordrb/webhooks'
+
+token = File.read(ENV.fetch('PYXIS_DC_RELEASE_TOOLS_TOKEN'))
+bot = Discordrb::Bot.new(token: token, intents: %i[servers])
+
+def build_command(name, description)
+  {
+    name: name,
+    description: description,
+    type: 1, # chat_input
+    contexts: [0], # guild
+  }
+end
+
+OPTION_TYPES = {
+  string: 3,
+  boolean: 5,
+  numeric: 4,
+}.freeze
+
+def build_options(thor_options)
+  options = []
+
+  thor_options.each_pair do |name, option|
+    opt = {
+      name: name,
+      description: option.description,
+      type: OPTION_TYPES[option.type],
+      required: option.required,
+    }
+
+    options << opt
+  end
+
+  options
+end
+
+def build_subcommands(thor_class)
+  subcommands = []
+
+  thor_class.commands.each_pair do |name, command|
+    cmd = {
+      type: 1, # sub_command
+      name: name,
+      description: command.description,
+      options: build_options(command.options),
+    }
+
+    subcommands << cmd
+  end
+
+  subcommands
+end
+
+def build_from_thor(thor_class)
+  commands = []
+
+  thor_class.commands.each_pair do |name, command|
+    cmd = build_command(name, command.description)
+    cmd[:options] =
+      if thor_class.subcommand_classes.key?(name)
+        build_subcommands(thor_class.subcommand_classes[name])
+      else
+        build_options(command.options)
+      end
+
+    commands << cmd
+  end
+
+  commands
+end
+
+commands = build_from_thor(Pyxis::Cli)
+
+Discordrb::API::Application.bulk_overwrite_global_commands(bot.instance_variable_get(:@token), bot.profile.id, commands)
+
+stop_signals = %w[QUIT INT TERM]
+
+stop_signals.each do |signal|
+  Signal.trap(signal) do
+    bot.stop
+  end
+end
+
+def build_command_from_event(data)
+  parts = []
+
+  if data['type'] == 1
+    parts << data['name']
+    data['options'].each do |option|
+      parts += build_command_from_event(option)
+    end
+  elsif [3, 4, 5].include?(data['type'])
+    parts << "--#{data['name']}"
+    parts << data['value'].to_s
+  end
+
+  parts
+end
+
+bot.interaction_create do |event|
+  event.defer(ephemeral: false)
+
+  begin
+    command = build_command_from_event(event.interaction.data)
+    SemanticLogger['DiscordBot'].info('Executing command', command: command)
+    result = Pyxis::Cli.start(command, { debug: true })
+    color = '#4caf50'
+  rescue Thor::Error, Pyxis::Error => e
+    result = "#{e.class}\n#{e.message}"
+    color = '#f44336'
+  end
+
+  event.edit_response(embeds: [Discordrb::Webhooks::Embed.new(description: result, color: color)])
+end
+
+bot.run

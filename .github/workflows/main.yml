@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     name: Ruby
 
@@ -21,3 +21,23 @@ jobs:
           bundler-cache: true
       - name: Run rubocop
         run: bundle exec rubocop
+
+  build-docker:
+    name: Build Image
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+      - run: >-
+          docker build
+          -t ghcr.io/code0-tech/pyxis:${{ github.run_number }}
+          -f Dockerfile
+          .
+      - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login -u $ --password-stdin ghcr.io
+        name: Login to registry
+        if: ${{ github.event_name == 'push' }}
+      - run: docker push ghcr.io/code0-tech/pyxis:${{ github.run_number }}
+        if: ${{ github.event_name == 'push' }}

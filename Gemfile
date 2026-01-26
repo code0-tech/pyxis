@@ -16,3 +16,5 @@ gem 'openssl', '~> 3.3'
 gem 'semantic_logger', '~> 4.16'
 
 gem 'json', '~> 2.12'
+
+gem 'discordrb', '~> 3.7'
