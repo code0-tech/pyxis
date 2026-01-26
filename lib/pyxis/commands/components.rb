@@ -5,9 +5,10 @@ module Pyxis
     class Components < Thor
       include PermissionHelper
 
-      desc 'info [BUILD_ID]', 'Get the component versions for a reticulum build'
-      def info(build_id)
-        component_versions = ManagedVersioning::ComponentInfo.new(build_id).execute
+      desc 'info', 'Get the component versions for a reticulum build'
+      method_option :build, aliases: '-b', desc: 'The build ID', required: true, type: :numeric
+      def info
+        component_versions = ManagedVersioning::ComponentInfo.new(options[:build]).execute
 
         result = 'Versions of each component'
         component_versions.each do |component, version|
@@ -16,11 +17,12 @@ module Pyxis
         result
       end
 
-      desc 'update [COMPONENT]', 'Update a component in reticulum'
-      def update(component)
+      desc 'update', 'Update a component in reticulum'
+      method_option :component, aliases: '-c', desc: 'The component to update', required: true, type: :string
+      def update
         assert_executed_by_schedule!
 
-        updater(component).execute
+        updater(options[:component]).execute
       end
 
       desc 'list', 'List all available components'
@@ -32,10 +34,11 @@ module Pyxis
         result
       end
 
-      desc 'get_version COMPONENT', 'Get the current version of a component in reticulum'
-      def get_version(component)
-        current_version = updater(component).find_current_version
-        puts "Current version of #{component}: #{current_version}"
+      desc 'get_version', 'Get the current version of a component in reticulum'
+      method_option :component, aliases: '-c', desc: 'The component to check', required: true, type: :string
+      def get_version # rubocop:disable Naming/AccessorMethodName
+        current_version = updater(options[:component]).find_current_version
+        puts "Current version of #{options[:component]}: #{current_version}"
       end
 
       no_commands do

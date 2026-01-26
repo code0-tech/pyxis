@@ -1,8 +1,4 @@
-include:
-  - local: .gitlab/ci/chatops.gitlab-ci.yml
-
 stages:
-  - chatops
   - components
 
 default:
@@ -24,6 +20,6 @@ components:update:
           - taurus
   script:
     - bundle install
-    - bin/pyxis components update $COMPONENT
+    - bin/pyxis components update --component $COMPONENT
   rules:
     - if: $UPDATE_COMPONENTS == "true"

@@ -6,4 +6,4 @@ require_relative '../lib/pyxis'
 result = Pyxis::Cli.start(ARGV)
 SemanticLogger.flush
 
-puts result
+puts result if result.is_a?(String)
