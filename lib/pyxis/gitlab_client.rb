@@ -43,9 +43,14 @@ module Pyxis
           json = response.body.blank? ? nil : JSON.parse(response.body)
 
           if json.is_a?(Hash)
-            Thor::CoreExt::HashWithIndifferentAccess.new(json)
+            Thor::CoreExt::HashWithIndifferentAccess.new(
+              {
+                body: Thor::CoreExt::HashWithIndifferentAccess.new(json),
+                response: response,
+              }
+            )
           else
-            json || response
+            response
           end
         end
       end

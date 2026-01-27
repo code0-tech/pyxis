@@ -15,7 +15,9 @@ module Pyxis
         pipeline = GitlabClient.client.get_json(
           "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{build_id}"
         )
-        reticulum_sha = pipeline.sha
+        return nil if pipeline.response.status == 404
+
+        reticulum_sha = pipeline.body.sha
 
         components = {}
 

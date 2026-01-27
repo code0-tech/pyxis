@@ -10,6 +10,8 @@ module Pyxis
       def info
         component_versions = ManagedVersioning::ComponentInfo.new(options[:build]).execute
 
+        raise Pyxis::MessageError, 'This build does not exist' if component_versions.nil?
+
         result = 'Versions of each component'
         component_versions.each do |component, version|
           result += "\n#{component}: #{version}"

@@ -111,6 +111,9 @@ bot.interaction_create do |event|
     SemanticLogger['DiscordBot'].info('Executing command', command: command)
     result = Pyxis::Cli.start(command, { debug: true })
     color = '#4caf50'
+  rescue Pyxis::MessageError => e
+    result = e.message
+    color = '#f44336'
   rescue Thor::Error, Pyxis::Error => e
     result = "#{e.class}\n#{e.message}"
     color = '#f44336'

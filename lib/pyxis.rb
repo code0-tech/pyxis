@@ -7,6 +7,7 @@ Bundler.require
 
 module Pyxis
   Error = Class.new(StandardError)
+  MessageError = Class.new(Pyxis::Error)
 end
 
 loader = Zeitwerk::Loader.for_gem
