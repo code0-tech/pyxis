@@ -120,6 +120,13 @@ bot.interaction_create do |event|
   end
 
   event.edit_response(embeds: [Discordrb::Webhooks::Embed.new(description: result, color: color)])
+
+  Pyxis::GithubClient::CLIENT_CONFIGS.each_value do |config|
+    config[:octokit] = nil
+  end
+  Pyxis::GitlabClient::CLIENT_CONFIGS.each_value do |config|
+    config[:client] = nil
+  end
 end
 
 bot.run
