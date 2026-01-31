@@ -27,30 +27,48 @@ module Pyxis
           'Private-Token': File.read(client_config[:private_token]),
         },
       }
-      faraday = Faraday.new(options)
-      faraday.use Pyxis::DryRunEnforcer::FaradayBlocker
-      faraday.use Pyxis::Logger::FaradayLogger
 
-      enhance_faraday(faraday)
-
-      faraday
+      GenericFaraday.create(options)
     end
 
-    def self.enhance_faraday(faraday)
-      %i[get post put patch delete].each do |method|
-        faraday.define_singleton_method(:"#{method}_json") do |*args, **kwargs|
-          response = faraday.send(method, *args, **kwargs)
-          json = response.body.blank? ? nil : JSON.parse(response.body)
+    def self.paginate_json(client, url, options = {})
+      response = []
 
-          if json.is_a?(Hash)
-            Thor::CoreExt::HashWithIndifferentAccess.new(
-              {
-                body: Thor::CoreExt::HashWithIndifferentAccess.new(json),
-                response: response,
-              }
-            )
-          else
-            response
+      client.get_json(url, options).tap do |page|
+        response += page.body
+        while (next_page_link = PageLinks.new(page.response.env.response_headers).next)
+          page = client.get_json(next_page_link)
+          response += page.body
+        end
+      end
+
+      response
+    end
+
+    class PageLinks
+      HEADER_LINK = 'link'
+      DELIM_LINKS = ','
+      LINK_REGEX = /<([^>]+)>; rel="([^"]+)"/
+      METAS = %w[last next first prev].freeze
+
+      attr_accessor(*METAS)
+
+      def initialize(headers)
+        link_header = headers[HEADER_LINK]
+
+        extract_links(link_header) if link_header && link_header =~ /(next|first|last|prev)/
+      end
+
+      private
+
+      def extract_links(header)
+        header.split(DELIM_LINKS).each do |link|
+          LINK_REGEX.match(link.strip) do |match|
+            url = match[1]
+            meta = match[2]
+            next if !url || !meta || METAS.index(meta).nil?
+
+            send("#{meta}=", url)
           end
         end
       end
