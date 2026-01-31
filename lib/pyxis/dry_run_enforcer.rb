@@ -3,7 +3,7 @@
 module Pyxis
   module DryRunEnforcer
     class FaradayBlocker < Faraday::Middleware
-      DryRunError = Class.new(StandardError)
+      DryRunError = Class.new(Pyxis::Error)
       include ::SemanticLogger::Loggable
 
       def on_request(env)
