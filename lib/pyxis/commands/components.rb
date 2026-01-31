@@ -19,6 +19,28 @@ module Pyxis
         result
       end
 
+      desc 'build', 'Start a reticulum build with specific versions'
+      method_option :aquila_sha, desc: 'Commit SHA of aquila to build', type: :string
+      method_option :draco_sha, desc: 'Commit SHA of draco to build', type: :string
+      method_option :sagittarius_sha, desc: 'Commit SHA of sagittarius to build', type: :string
+      method_option :sculptor_sha, desc: 'Commit SHA of sculptor to build', type: :string
+      method_option :taurus_sha, desc: 'Commit SHA of taurus to build', type: :string
+      def build
+        version_overrides = {
+          aquila: options[:aquila_sha],
+          draco: options[:draco_sha],
+          sagittarius: options[:sagittarius_sha],
+          sculptor: options[:sculptor_sha],
+          taurus: options[:taurus_sha],
+        }.compact
+
+        pipeline = Pyxis::Services::CreateReticulumBuildService.new(version_overrides).execute
+
+        raise Pyxis::MessageError, 'Failed to create pipeline' if pipeline.nil?
+
+        "Created reticulum build at #{pipeline.web_url}"
+      end
+
       desc 'update', 'Update a component in reticulum'
       method_option :component, aliases: '-c', desc: 'The component to update', required: true, type: :string
       def update

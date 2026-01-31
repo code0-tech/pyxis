@@ -31,18 +31,26 @@ module Pyxis
         octokit.instance_variable_set(:@auto_paginate, current_auto_paginate)
       end
 
-      private
-
-      def create_octokit(instance)
-        logger.info('Creating octokit client', instance: instance)
+      def create_installation_access_token(instance, options = {})
         config = CLIENT_CONFIGS[instance]
         global_client = Octokit::Client.new(bearer_token: create_jwt(config[:private_key_location], config[:app_id]))
         logger.debug('Created JWT for client', app: global_client.app.slug)
         installation_token = Pyxis::GlobalStatus.with_faraday_dry_run_bypass do
-          global_client.create_app_installation_access_token(config[:installation_id])
+          global_client.create_app_installation_access_token(config[:installation_id], options)
         end
+
         logger.debug('Created app installation access token',
                      installation_token: installation_token.to_h.except(:token))
+
+        installation_token
+      end
+
+      private
+
+      def create_octokit(instance)
+        logger.info('Creating octokit client', instance: instance)
+
+        installation_token = create_installation_access_token(instance)
         Octokit::Client.new(bearer_token: installation_token[:token])
       end
 

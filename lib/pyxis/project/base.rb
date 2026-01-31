@@ -16,6 +16,10 @@ module Pyxis
           paths[:github]
         end
 
+        def github_repository_name
+          github_path.split('/')[1]
+        end
+
         def api_gitlab_path
           paths[:gitlab].gsub('/', '%2F')
         end
