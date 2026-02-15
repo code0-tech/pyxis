@@ -5,7 +5,7 @@ module Pyxis
     module_function
 
     def dry_run?
-      ENV.fetch('DRY_RUN', 'true').downcase == 'true'
+      Pyxis::Environment.dry_run == 'true'
     end
 
     def with_faraday_dry_run_bypass

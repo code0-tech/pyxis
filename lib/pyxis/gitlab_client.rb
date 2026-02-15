@@ -8,7 +8,7 @@ module Pyxis
 
     CLIENT_CONFIGS = {
       release_tools: {
-        private_token: ENV.fetch('PYXIS_GL_RELEASE_TOOLS_PRIVATE_TOKEN'),
+        private_token: Pyxis::Environment.gitlab_release_tools_token,
         user_id: 20643824,
       },
     }.freeze
@@ -24,7 +24,7 @@ module Pyxis
       options = {
         url: GITLAB_URL,
         headers: {
-          'Private-Token': File.read(client_config[:private_token]),
+          'Private-Token': client_config[:private_token],
         },
       }
 

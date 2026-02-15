@@ -8,12 +8,12 @@ module Pyxis
       release_tools: {
         app_id: 857194,
         installation_id: 69940866,
-        private_key_location: ENV.fetch('PYXIS_GH_RELEASE_TOOLS_PRIVATE_KEY'),
+        private_key: Pyxis::Environment.github_release_tools_private_key,
       },
       release_tools_approver: {
         app_id: 1373592,
         installation_id: 70116032,
-        private_key_location: ENV.fetch('PYXIS_GH_RELEASE_TOOLS_APPROVER_PRIVATE_KEY'),
+        private_key: Pyxis::Environment.github_release_tools_approver_private_key,
       },
     }.freeze
 
@@ -33,7 +33,7 @@ module Pyxis
 
       def create_installation_access_token(instance, options = {})
         config = CLIENT_CONFIGS[instance]
-        global_client = Octokit::Client.new(bearer_token: create_jwt(config[:private_key_location], config[:app_id]))
+        global_client = Octokit::Client.new(bearer_token: create_jwt(config[:private_key], config[:app_id]))
         logger.debug('Created JWT for client', app: global_client.app.slug)
         installation_token = Pyxis::GlobalStatus.with_faraday_dry_run_bypass do
           global_client.create_app_installation_access_token(config[:installation_id], options)
@@ -54,8 +54,7 @@ module Pyxis
         Octokit::Client.new(bearer_token: installation_token[:token])
       end
 
-      def create_jwt(private_key_path, client_id)
-        private_pem = File.read(private_key_path)
+      def create_jwt(private_pem, client_id)
         private_key = OpenSSL::PKey::RSA.new(private_pem)
 
         payload = {

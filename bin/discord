@@ -5,8 +5,7 @@ require_relative '../lib/pyxis'
 require 'discordrb'
 require 'discordrb/webhooks'
 
-token = File.read(ENV.fetch('PYXIS_DC_RELEASE_TOOLS_TOKEN'))
-bot = Discordrb::Bot.new(token: token, intents: %i[servers])
+bot = Discordrb::Bot.new(token: Pyxis::Environment.discord_bot_token, intents: %i[servers])
 
 def build_command(name, description)
   {
