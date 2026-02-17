@@ -26,6 +26,8 @@ module Pyxis
       method_option :sculptor_sha, desc: 'Commit SHA of sculptor to build', type: :string
       method_option :taurus_sha, desc: 'Commit SHA of taurus to build', type: :string
       def build
+        assert_executed_by_known_team_member!
+
         version_overrides = {
           aquila: options[:aquila_sha],
           draco: options[:draco_sha],

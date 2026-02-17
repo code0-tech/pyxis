@@ -110,8 +110,10 @@ bot.interaction_create do |event|
   event.defer(ephemeral: false)
 
   begin
+    user_id = event.interaction.user.id
     command = build_command_from_event(event.interaction.data)
-    SemanticLogger['DiscordBot'].info('Executing command', command: command)
+    SemanticLogger['DiscordBot'].info('Executing command', command: command, user_id: user_id)
+    ENV['DISCORD_USER_ID'] = user_id.to_s
     result = Pyxis::Cli.start(command, { debug: true })
     color = '#4caf50'
   rescue Pyxis::MessageError => e
@@ -120,6 +122,8 @@ bot.interaction_create do |event|
   rescue Thor::Error, Pyxis::Error => e
     result = "#{e.class}\n#{e.message}"
     color = '#f44336'
+  ensure
+    ENV.delete('DISCORD_USER_ID')
   end
 
   event.edit_response(embeds: [Discordrb::Webhooks::Embed.new(description: result, color: color)])
