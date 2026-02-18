@@ -5,13 +5,24 @@ module Pyxis
     class ComponentInfo
       include SemanticLogger::Loggable
 
-      attr_reader :build_id
+      attr_reader :build_id, :container_tag
 
-      def initialize(build_id)
+      def initialize(build_id: nil, container_tag: nil)
         @build_id = build_id
+        @container_tag = container_tag
       end
 
       def execute
+        unless container_tag.nil?
+          @build_id = annotation_for(
+            'code0-tech/reticulum/ci-builds/mise',
+            container_tag,
+            'tech.code0.reticulum.pipeline.id'
+          )
+        end
+
+        return nil if build_id.nil?
+
         pipeline = GitlabClient.client.get_json(
           "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{build_id}"
         )
@@ -21,6 +32,8 @@ module Pyxis
           GitlabClient.client,
           "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{build_id}/jobs"
         )
+
+        container_version = find_container_version(jobs)
 
         manifests = find_manifests(jobs)
 
@@ -32,9 +45,13 @@ module Pyxis
           component = image.first.to_sym
           next if components.key?(component)
 
-          image_tag = image.length == 1 ? build_id : "#{build_id}-#{image.last}"
+          image_tag = image.length == 1 ? container_version : "#{container_version}-#{image.last}"
 
-          components[component] = revision_for("code0-tech/reticulum/ci-builds/#{component}", image_tag)
+          components[component] = annotation_for(
+            "code0-tech/reticulum/ci-builds/#{component}",
+            image_tag,
+            'org.opencontainers.image.version'
+          )
         end
 
         components.compact
@@ -60,7 +77,7 @@ module Pyxis
         response.body.token
       end
 
-      def revision_for(image, tag)
+      def annotation_for(image, tag, annotation)
         token = token_for(image)
 
         response = ghcr_client.get_json(
@@ -74,7 +91,7 @@ module Pyxis
 
         logger.warn('Failed to retrieve tag for image', image: image, tag: tag) unless response.response.status == 200
 
-        response.body.annotations&.[]('org.opencontainers.image.version')
+        response.body.annotations&.[](annotation)
       end
 
       def find_manifests(jobs)
@@ -88,6 +105,20 @@ module Pyxis
 
           [image.first, image.last.delete_prefix('[').delete_suffix(']')]
         end
+      end
+
+      def find_container_version(jobs)
+        job = jobs.find { |job| job['name'] == 'generate-environment' }
+        return build_id if job.nil? # fallback to build_id if job not found
+
+        trace = GitlabClient.client.get(
+          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/jobs/#{job['id']}/trace"
+        )
+        trace.body
+             .lines
+             .drop_while { |line| !(line.include?('section_start') && line.include?('glpa_summary')) }
+             .find { |line| line =~ /RETICULUM_CONTAINER_VERSION=[0-9a-zA-Z-.]+$/ }
+             .split('=')[1].chomp
       end
     end
   end

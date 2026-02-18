@@ -6,9 +6,25 @@ module Pyxis
       include PermissionHelper
 
       desc 'info', 'Get the component versions for a reticulum build'
-      method_option :build, aliases: '-b', desc: 'The build ID', required: true, type: :numeric
+      method_option :build,
+                    aliases: '-b',
+                    desc: 'The build ID',
+                    required: false,
+                    type: :numeric
+      method_option :container_tag,
+                    aliases: '-c',
+                    desc: 'The container tag excluding variant modifiers',
+                    required: false,
+                    type: :string
       def info
-        component_versions = ManagedVersioning::ComponentInfo.new(options[:build]).execute
+        if options[:build].nil? == options[:container_tag].nil?
+          raise Pyxis::MessageError, 'Only one of build or container_tag must be given'
+        end
+
+        component_versions = ManagedVersioning::ComponentInfo.new(
+          build_id: options[:build],
+          container_tag: options[:container_tag]
+        ).execute
 
         raise Pyxis::MessageError, 'This build does not exist' if component_versions.nil?
 
