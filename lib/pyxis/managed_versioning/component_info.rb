@@ -111,14 +111,13 @@ module Pyxis
         job = jobs.find { |job| job['name'] == 'generate-environment' }
         return build_id if job.nil? # fallback to build_id if job not found
 
-        trace = GitlabClient.client.get(
-          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/jobs/#{job['id']}/trace"
+        env = GitlabClient.client.get(
+          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/jobs/#{job['id']}/artifacts/.gitlab/ci/env"
         )
-        trace.body
-             .lines
-             .drop_while { |line| !(line.include?('section_start') && line.include?('glpa_summary')) }
-             .find { |line| line =~ /RETICULUM_CONTAINER_VERSION=[0-9a-zA-Z-.]+$/ }
-             .split('=')[1].chomp
+        env.body
+           .lines
+           .find { |line| line.start_with?('RETICULUM_CONTAINER_VERSION=') }
+           .split('=')[1].chomp
       end
     end
   end
