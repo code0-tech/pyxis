@@ -7,10 +7,11 @@ module Pyxis
 
       include SemanticLogger::Loggable
 
-      attr_reader :version_overrides
+      attr_reader :version_overrides, :ref
 
-      def initialize(version_overrides)
+      def initialize(version_overrides, ref: Project::Reticulum.default_branch)
         @version_overrides = version_overrides
+        @ref = ref
       end
 
       def execute
@@ -20,12 +21,10 @@ module Pyxis
           validate_override!(component, version)
         end
 
-        pipeline = GitlabClient.client.post_json(
-          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipeline",
-          {
-            ref: Project::Reticulum.default_branch,
-            variables: version_override_variables + token_variable,
-          }
+        pipeline = GitlabClient.client.create_pipeline(
+          Project::Reticulum.api_gitlab_path,
+          ref,
+          variables: version_override_variables + token_variable,
         )
 
         pipeline.body if pipeline.response.status == 201

@@ -28,7 +28,9 @@ module Pyxis
         },
       }
 
-      GenericFaraday.create(options)
+      faraday = GenericFaraday.create(options)
+
+      GitlabFaraday.new(faraday)
     end
 
     def self.paginate_json(client, url, options = {})
@@ -43,6 +45,29 @@ module Pyxis
       end
 
       response
+    end
+
+    class GitlabFaraday
+      extend Forwardable
+
+      attr_reader :faraday
+
+      def_delegators :@faraday, :get, :post, :put, :patch, :delete
+      def_delegators :@faraday, :get_json, :post_json, :put_json, :patch_json, :delete_json
+
+      def initialize(faraday)
+        @faraday = faraday
+      end
+
+      def create_pipeline(project_path_or_id, ref, variables: nil)
+        post_json(
+          "/api/v4/projects/#{project_path_or_id}/pipeline",
+          {
+            ref: ref,
+            variables: variables,
+          }
+        )
+      end
     end
 
     class PageLinks
