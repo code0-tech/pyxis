@@ -44,6 +44,7 @@ def build_subcommands(thor_class)
 
   thor_class.commands.each_pair do |name, command|
     next if name == 'help'
+    next if command.is_a?(Thor::HiddenCommand)
 
     cmd = {
       type: 1, # sub_command
@@ -63,6 +64,7 @@ def build_from_thor(thor_class)
 
   thor_class.commands.each_pair do |name, command|
     next if name == 'help'
+    next if command.is_a?(Thor::HiddenCommand)
 
     cmd = build_command(name, command.description)
     cmd[:options] =
