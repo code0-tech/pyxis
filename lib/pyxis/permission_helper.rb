@@ -21,6 +21,19 @@ module Pyxis
       raise PermissionError, 'This operation can only be run by a known team member'
     end
 
+    def assert_executed_by_delivery_team_member!
+      return unless checks_active?
+
+      assert_executed_by_known_team_member!
+
+      team = GithubClient.octokit.team_by_name(GithubClient::ORGANIZATION_NAME, 'delivery')
+      user = find_current_user
+
+      return if GithubClient.octokit.team_member?(team.id, user['github'])
+
+      raise PermissionError, 'This operation can only be run by a delivery team member'
+    end
+
     def find_current_user
       if ENV['GITLAB_USER_LOGIN']
         users.find { |user| user['gitlab'] == ENV['GITLAB_USER_LOGIN'] }

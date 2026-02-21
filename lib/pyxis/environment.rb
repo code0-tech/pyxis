@@ -16,6 +16,10 @@ module Pyxis
       File.read(ENV.fetch('PYXIS_GH_RELEASE_TOOLS_APPROVER_PRIVATE_KEY'))
     end
 
+    def github_reticulum_publish_token
+      File.read(ENV.fetch('PYXIS_GH_RETICULUM_PUBLISH_TOKEN'))
+    end
+
     def gitlab_release_tools_token
       File.read(ENV.fetch('PYXIS_GL_RELEASE_TOOLS_PRIVATE_TOKEN'))
     end

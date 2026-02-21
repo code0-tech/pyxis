@@ -2,7 +2,8 @@
 /doc/
 /log/*.log
 /pkg/
-/tmp/
+/tmp/*
+!/tmp/.gitkeep
 /private/
 
 # rspec failure tracking
