@@ -12,30 +12,20 @@ module Pyxis
         @container_tag = container_tag
       end
 
+      # @return [Hash<Symbol, String>] The versions of each component in the build
+      # @return [nil] If the build does not exist
       def execute
-        unless container_tag.nil?
-          @build_id = annotation_for(
-            'code0-tech/reticulum/ci-builds/mise',
-            container_tag,
-            'tech.code0.reticulum.pipeline.id'
-          )
-        end
+        @build_id = find_build_id_for_container_tag unless container_tag.nil?
 
         return nil if build_id.nil?
 
-        pipeline = GitlabClient.client.get_json(
-          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{build_id}"
-        )
-        return nil if pipeline.response.status == 404
+        pipeline, jobs = load_pipeline(build_id)
 
-        jobs = GitlabClient.paginate_json(
-          GitlabClient.client,
-          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{build_id}/jobs"
-        )
+        return nil if jobs.nil?
 
         container_version = find_container_version(jobs)
 
-        manifests = find_manifests(jobs)
+        manifests = find_manifests_from_jobs(jobs)
 
         components = {
           reticulum: pipeline.body.sha,
@@ -55,6 +45,28 @@ module Pyxis
         end
 
         components.compact
+      end
+
+      def find_build_id_for_container_tag
+        annotation_for(
+          'code0-tech/reticulum/ci-builds/mise',
+          container_tag,
+          'tech.code0.reticulum.pipeline.id'
+        )
+      end
+
+      def find_container_tag_for_build_id
+        _, jobs = load_pipeline(build_id)
+        return nil if jobs.nil?
+
+        find_container_version(jobs)
+      end
+
+      def find_manifests
+        _, jobs = load_pipeline(build_id)
+        return nil if jobs.nil?
+
+        find_manifests_from_jobs(jobs)
       end
 
       private
@@ -94,7 +106,7 @@ module Pyxis
         response.body.annotations&.[](annotation)
       end
 
-      def find_manifests(jobs)
+      def find_manifests_from_jobs(jobs)
         jobs.map { |job| job['name'] }
             .select { |job| job.start_with?('manifest:') }
             .map { |job| job.delete_prefix('manifest:') }
@@ -116,9 +128,26 @@ module Pyxis
         )
         trace.body
              .lines
-             .drop_while { |line| !(line.include?('section_start') && line.include?('glpa_summary')) }
-             .find { |line| line =~ /RETICULUM_CONTAINER_VERSION=[0-9a-zA-Z-.]+$/ }
+             .drop_while { |line| line !~ /\e\[0Ksection_start:\d+:glpa_summary/ }
+             .drop(1)
+             .take_while { |line| line !~ /\e\[0Ksection_end:\d+:glpa_summary/ }
+             .find { |line| line =~ /RETICULUM_CONTAINER_VERSION=[0-9a-zA-Z\-.]+$/ }
              .split('=')[1].chomp
+      end
+
+      def load_pipeline(pipeline_id)
+        pipeline = GitlabClient.client.get_json(
+          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{pipeline_id}"
+        )
+        return nil if pipeline.response.status == 404
+
+        [
+          pipeline,
+          GitlabClient.paginate_json(
+            GitlabClient.client,
+            "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{pipeline_id}/jobs"
+          )
+        ]
       end
     end
   end

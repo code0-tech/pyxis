@@ -24,7 +24,7 @@ module Pyxis
         pipeline = GitlabClient.client.create_pipeline(
           Project::Reticulum.api_gitlab_path,
           ref,
-          variables: version_override_variables + token_variable,
+          variables: version_override_variables + token_variable
         )
 
         pipeline.body if pipeline.response.status == 201
@@ -33,7 +33,7 @@ module Pyxis
       private
 
       def validate_override!(component, version)
-        project = Pyxis::Project.const_get(component.capitalize)
+        project = Pyxis::Project.get_project(component.capitalize)
 
         begin
           GithubClient.octokit.tag(project.github_path, version)
@@ -63,7 +63,7 @@ module Pyxis
         [
           {
             key: 'C0_GH_TOKEN',
-            value: File.read(ENV.fetch('PYXIS_GH_RETICULUM_PUBLISH_TOKEN')),
+            value: Pyxis::Environment.github_reticulum_publish_token,
           }
         ]
       end

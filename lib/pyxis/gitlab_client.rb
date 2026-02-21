@@ -59,7 +59,33 @@ module Pyxis
         @faraday = faraday
       end
 
+      # @param project_path_or_id Project path or id to create the branch in
+      # @param branch The name of the branch to create
+      # @param ref The branch name or commit sha to create the branch from
+      def create_branch(project_path_or_id, branch, ref)
+        post_json(
+          "/api/v4/projects/#{project_path_or_id}/repository/branches",
+          {
+            branch: branch,
+            ref: ref,
+          }
+        )
+      end
+
+      def delete_branch(project_path_or_id, branch)
+        delete("/api/v4/projects/#{project_path_or_id}/repository/branches/#{path_encode branch}")
+      end
+
       def create_pipeline(project_path_or_id, ref, variables: nil)
+        if variables.is_a?(Hash)
+          variables = variables.map do |key, value|
+            {
+              key: key,
+              value: value,
+            }
+          end
+        end
+
         post_json(
           "/api/v4/projects/#{project_path_or_id}/pipeline",
           {
@@ -67,6 +93,18 @@ module Pyxis
             variables: variables,
           }
         )
+      end
+
+      def list_pipeline_bridges(project_path_or_id, pipeline_id)
+        paginate_json("/api/v4/projects/#{project_path_or_id}/pipelines/#{pipeline_id}/bridges")
+      end
+
+      def path_encode(content)
+        content.gsub('/', '%2F')
+      end
+
+      def paginate_json(url, options = {})
+        GitlabClient.paginate_json(faraday, url, options)
       end
     end
 

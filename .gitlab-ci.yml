@@ -1,6 +1,10 @@
+include:
+  - local: .gitlab/ci/release-coordinator.canary.gitlab-ci.yml
+
 stages:
   - build
   - components
+  - !reference [.release-coordinator:canary:stages]
 
 default:
   image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
