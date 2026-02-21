@@ -1,12 +1,33 @@
 stages:
+  - build
   - components
 
 default:
+  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   tags:
     - infra
 
+build-image:
+  stage: build
+  image: docker:28.5.0
+  variables:
+    DOCKER_MIRROR: https://mirror.gcr.io
+    DOCKER_OPTIONS: "--registry-mirror ${DOCKER_MIRROR}"
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: /certs
+  services:
+    - name: docker:29.2.1-dind
+      alias: docker
+      entrypoint: [ "sh", "-c", "dockerd-entrypoint.sh $DOCKER_OPTIONS" ]
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - echo $CI_REGISTRY_PASSWORD | docker login --password-stdin --username $CI_REGISTRY_USER $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
 components:update:
-  image: ruby:3.2.2
   stage: components
   resource_group: components_update
   timeout: 10 min
@@ -19,7 +40,6 @@ components:update:
           - sculptor
           - taurus
   script:
-    - bundle install
     - bin/pyxis components update --component $COMPONENT
   rules:
     - if: $UPDATE_COMPONENTS == "true"
