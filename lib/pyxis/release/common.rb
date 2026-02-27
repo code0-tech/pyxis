@@ -11,10 +11,12 @@ module Pyxis
 
       CONTAINER_RELEASE_PUBLISH_USER = 'code0-release-tools'
 
+      CONTAINER_IMAGES_TO_RELEASE = Project.components + %i[config-generator]
+
       def copy_container_images_to_release_registry(component_info)
         container_tag = info.find_container_tag_for_build_id
         container_tags = component_info.find_manifests.map do |manifest|
-          next nil unless Project.components.include?(manifest.first.to_sym)
+          next nil unless CONTAINER_IMAGES_TO_RELEASE.include?(manifest.first.to_sym)
 
           next "#{manifest.first}:#{container_tag}" if manifest.length == 1
 
