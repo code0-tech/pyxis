@@ -4,6 +4,8 @@ module Pyxis
   class GithubClient
     include SemanticLogger::Loggable
 
+    ORGANIZATION_NAME = 'code0-tech'
+
     CLIENT_CONFIGS = {
       release_tools: {
         app_id: 857194,

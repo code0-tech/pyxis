@@ -13,7 +13,7 @@ gem 'jwt', '~> 2.10'
 gem 'octokit', '~> 10.0'
 gem 'openssl', '~> 3.3'
 
-gem 'semantic_logger', '~> 4.16'
+gem 'semantic_logger', '~> 4.16', require: 'semantic_logger/sync'
 
 gem 'json', '~> 2.12'
 

@@ -71,7 +71,7 @@ module Pyxis
       def list
         result = 'Available components:'
         Pyxis::Project.components.each do |project|
-          result += "\n- #{project.downcase}"
+          result += "\n- #{project}"
         end
         result
       end

@@ -32,7 +32,11 @@ module Pyxis
     end
 
     def self.components
-      constants.reject { |c| %i[Base Reticulum].include?(c) }
+      %i[aquila draco sagittarius sculptor taurus]
+    end
+
+    def self.get_project(project)
+      const_get(project.capitalize)
     end
   end
 end

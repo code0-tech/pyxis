@@ -1,0 +1,78 @@
+.release-coordinator:canary:stages:
+  - release-coordinator:canary:build
+  - release-coordinator:canary:publish
+
+.release-coordinator:canary:
+  rules:
+    - if: $RELEASE_COORDINATOR == "canary"
+
+release-coordinator:canary:tmp-branch:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:build
+  script:
+    - bin/pyxis internal release_canary_tmp_branch --build-id-to-promote $BUILD_ID_TO_PROMOTE
+  variables:
+    DRY_RUN: "false"
+  artifacts:
+    reports:
+      dotenv: tmp/reticulum_variables.env
+
+release-coordinator:canary:build:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:build
+  needs:
+    - release-coordinator:canary:tmp-branch
+  trigger:
+    project: code0-tech/development/reticulum
+    branch: pyxis/canary-build/$BUILD_ID_TO_PROMOTE
+    forward:
+      pipeline_variables: true
+    strategy: depend
+  variables:
+    RETICULUM_BUILD_TYPE: canary
+
+release-coordinator:canary:tmp-branch-cleanup:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:build
+  needs:
+    - release-coordinator:canary:build
+  script:
+    - bin/pyxis internal release_canary_tmp_branch_cleanup --build-id-to-promote $BUILD_ID_TO_PROMOTE
+  variables:
+    DRY_RUN: "false"
+  when: always
+
+release-coordinator:canary:publish:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:publish
+  needs:
+    - release-coordinator:canary:build
+  script:
+    - echo "Publishing approved"
+  when: manual
+
+release-coordinator:canary:publish-containers:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:publish
+  needs:
+    - release-coordinator:canary:publish
+  script:
+    - bin/pyxis internal release_canary_publish_tags --coordinator-pipeline-id $CI_PIPELINE_ID
+  variables:
+    DRY_RUN: "false"
+
+release-coordinator:canary:publish-release:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:publish
+  needs:
+    - release-coordinator:canary:publish-containers
+  script:
+    - bin/pyxis internal release_canary_publish_release --coordinator-pipeline-id $CI_PIPELINE_ID
+  variables:
+    DRY_RUN: "false"
