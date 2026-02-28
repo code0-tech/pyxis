@@ -65,3 +65,14 @@ release-coordinator:canary:publish-containers:
     - bin/pyxis internal release_canary_publish_tags --coordinator-pipeline-id $CI_PIPELINE_ID
   variables:
     DRY_RUN: "false"
+
+release-coordinator:canary:publish-release:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:publish
+  needs:
+    - release-coordinator:canary:publish-containers
+  script:
+    - bin/pyxis internal release_canary_publish_release --coordinator-pipeline-id $CI_PIPELINE_ID
+  variables:
+    DRY_RUN: "false"

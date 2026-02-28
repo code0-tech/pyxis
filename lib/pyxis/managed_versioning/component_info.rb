@@ -14,8 +14,8 @@ module Pyxis
 
       # @return [Hash<Symbol, String>] The versions of each component in the build
       # @return [nil] If the build does not exist
-      def execute
-        @build_id = find_build_id_for_container_tag unless container_tag.nil?
+      def execute(filter_components: nil)
+        find_build_id_for_container_tag unless container_tag.nil?
 
         return nil if build_id.nil?
 
@@ -28,12 +28,13 @@ module Pyxis
         manifests = find_manifests_from_jobs(jobs)
 
         components = {
-          reticulum: pipeline.body.sha,
+          reticulum: (pipeline.body.sha if filter_components.nil? || filter_components.include?(:reticulum)),
         }
 
         manifests.each do |image|
           component = image.first.to_sym
           next if components.key?(component)
+          next if filter_components && !filter_components.include?(component)
 
           image_tag = image.length == 1 ? container_version : "#{container_version}-#{image.last}"
 
@@ -48,7 +49,9 @@ module Pyxis
       end
 
       def find_build_id_for_container_tag
-        annotation_for(
+        return build_id unless build_id.nil?
+
+        @build_id = annotation_for(
           'code0-tech/reticulum/ci-builds/mise',
           container_tag,
           'tech.code0.reticulum.pipeline.id'
@@ -56,10 +59,12 @@ module Pyxis
       end
 
       def find_container_tag_for_build_id
+        return container_tag unless container_tag.nil?
+
         _, jobs = load_pipeline(build_id)
         return nil if jobs.nil?
 
-        find_container_version(jobs)
+        @container_tag = find_container_version(jobs)
       end
 
       def find_manifests

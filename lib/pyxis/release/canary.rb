@@ -38,10 +38,7 @@ module Pyxis
       end
 
       def publish_tags(coordinator_pipeline_id)
-        build_id = GitlabClient.client
-                               .list_pipeline_bridges(Project::Pyxis.api_gitlab_path, coordinator_pipeline_id)
-                               .find { |bridge| bridge['name'] == 'release-coordinator:canary:build' }
-                               .dig('downstream_pipeline', 'id')
+        build_id = find_build_id(coordinator_pipeline_id)
 
         info = ManagedVersioning::ComponentInfo.new(build_id: build_id)
         common = Common.new
@@ -49,6 +46,24 @@ module Pyxis
         success = common.copy_container_images_to_release_registry(info)
 
         raise Pyxis::MessageError, 'Failed to copy all container images' unless success
+      end
+
+      def publish_release(coordinator_pipeline_id)
+        build_id = find_build_id(coordinator_pipeline_id)
+
+        info = ManagedVersioning::ComponentInfo.new(build_id: build_id)
+        common = Common.new
+
+        common.publish_github_release(info, prerelease: true)
+      end
+
+      private
+
+      def find_build_id(coordinator_pipeline_id)
+        GitlabClient.client
+                    .list_pipeline_bridges(Project::Pyxis.api_gitlab_path, coordinator_pipeline_id)
+                    .find { |bridge| bridge['name'] == 'release-coordinator:canary:build' }
+                    .dig('downstream_pipeline', 'id')
       end
     end
   end
