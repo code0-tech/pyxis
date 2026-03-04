@@ -33,6 +33,7 @@ module Pyxis
           Project::Pyxis.api_gitlab_path,
           Project::Pyxis.default_branch,
           variables: {
+            PIPELINE_NAME: "Release build #{build_id} as canary",
             RELEASE_COORDINATOR: 'canary',
             BUILD_ID_TO_PROMOTE: build_id.to_s,
           }

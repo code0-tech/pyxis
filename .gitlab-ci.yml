@@ -6,6 +6,14 @@ stages:
   - components
   - !reference [.release-coordinator:canary:stages]
 
+workflow:
+  name: $PIPELINE_NAME
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+      variables:
+        PIPELINE_NAME: "Build pyxis image for $CI_COMMIT_SHORT_SHA"
+    - if: $PIPELINE_NAME != null
+
 default:
   image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   tags:

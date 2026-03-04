@@ -95,6 +95,10 @@ module Pyxis
         )
       end
 
+      def get_pipeline(project_path_or_id, id)
+        get_json("/api/v4/projects/#{project_path_or_id}/pipelines/#{id}")
+      end
+
       def list_pipeline_bridges(project_path_or_id, pipeline_id)
         paginate_json("/api/v4/projects/#{project_path_or_id}/pipelines/#{pipeline_id}/bridges")
       end
