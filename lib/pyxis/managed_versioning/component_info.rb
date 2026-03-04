@@ -141,9 +141,7 @@ module Pyxis
       end
 
       def load_pipeline(pipeline_id)
-        pipeline = GitlabClient.client.get_json(
-          "/api/v4/projects/#{Project::Reticulum.api_gitlab_path}/pipelines/#{pipeline_id}"
-        )
+        pipeline = GitlabClient.client.get_pipeline(Project::Reticulum.api_gitlab_path, pipeline_id)
         return nil if pipeline.response.status == 404
 
         [

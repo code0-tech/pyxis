@@ -28,6 +28,54 @@ module Pyxis
       def release_canary_publish_release
         Pyxis::Release::Canary.new.publish_release(options[:coordinator_pipeline_id])
       end
+
+      desc 'release_notify_publish_pending', ''
+      method_option :coordinator_pipeline_id, required: true, type: :numeric
+      def release_notify_publish_pending
+        pipeline = GitlabClient.client.get_pipeline(
+          Project::Pyxis.api_gitlab_path,
+          options[:coordinator_pipeline_id]
+        ).body
+        raise 'Pipeline not found' if pipeline.nil?
+
+        Pyxis::DiscordClient.new.send_notification(<<~DESC, :warn)
+          Coordinator pipeline awaiting approval for release publishing
+          #{"> #{pipeline.name}" if pipeline.name}
+          #{pipeline.web_url}
+        DESC
+      end
+
+      desc 'notify_new_coordinator', ''
+      method_option :coordinator_pipeline_id, required: true, type: :numeric
+      def notify_new_coordinator
+        pipeline = GitlabClient.client.get_pipeline(
+          Project::Pyxis.api_gitlab_path,
+          options[:coordinator_pipeline_id]
+        ).body
+        raise 'Pipeline not found' if pipeline.nil?
+
+        Pyxis::DiscordClient.new.send_notification(<<~DESC)
+          New coordinator pipeline started
+          #{"> #{pipeline.name}" if pipeline.name}
+          #{pipeline.web_url}
+        DESC
+      end
+
+      desc 'notify_finish_coordinator', ''
+      method_option :coordinator_pipeline_id, required: true, type: :numeric
+      def notify_finish_coordinator
+        pipeline = GitlabClient.client.get_pipeline(
+          Project::Pyxis.api_gitlab_path,
+          options[:coordinator_pipeline_id]
+        ).body
+        raise 'Pipeline not found' if pipeline.nil?
+
+        Pyxis::DiscordClient.new.send_notification(<<~DESC)
+          Coordinator pipeline has finished
+          #{"> #{pipeline.name}" if pipeline.name}
+          #{pipeline.web_url}
+        DESC
+      end
     end
   end
 end

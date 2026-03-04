@@ -1,10 +1,21 @@
 .release-coordinator:canary:stages:
+  - release-coordinator:canary:notify-start
   - release-coordinator:canary:build
   - release-coordinator:canary:publish
+  - release-coordinator:canary:notify-finish
 
 .release-coordinator:canary:
   rules:
     - if: $RELEASE_COORDINATOR == "canary"
+
+release-coordinator:canary:notify-start:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:notify-start
+  script:
+    - bin/pyxis internal notify_new_coordinator --coordinator-pipeline-id $CI_PIPELINE_ID
+  variables:
+    DRY_RUN: "false"
 
 release-coordinator:canary:tmp-branch:
   extends:
@@ -55,6 +66,14 @@ release-coordinator:canary:publish:
     - echo "Publishing approved"
   when: manual
 
+release-coordinator:canary:notify-publish-pending:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:publish
+  needs: !reference [release-coordinator:canary:publish, needs]
+  script:
+    - bin/pyxis internal release_notify_publish_pending
+
 release-coordinator:canary:publish-containers:
   extends:
     - .release-coordinator:canary
@@ -74,5 +93,14 @@ release-coordinator:canary:publish-release:
     - release-coordinator:canary:publish-containers
   script:
     - bin/pyxis internal release_canary_publish_release --coordinator-pipeline-id $CI_PIPELINE_ID
+  variables:
+    DRY_RUN: "false"
+
+release-coordinator:canary:notify-finish:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:notify-finish
+  script:
+    - bin/pyxis internal notify_finish_coordinator --coordinator-pipeline-id $CI_PIPELINE_ID
   variables:
     DRY_RUN: "false"
