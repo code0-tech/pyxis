@@ -18,3 +18,5 @@ gem 'semantic_logger', '~> 4.16', require: 'semantic_logger/sync'
 gem 'json', '~> 2.12'
 
 gem 'discordrb', '~> 3.7'
+
+gem 'toml-rb', '~> 4.1'
