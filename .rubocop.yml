@@ -1,11 +1,17 @@
 AllCops:
-  TargetRubyVersion: 3.2.0
+  TargetRubyVersion: 3.2
   NewCops: enable
 
 Metrics:
   Enabled: false
 
+Naming/PredicateMethod:
+  AllowBangMethods: true
+
 Style/Documentation:
+  Enabled: false
+
+Style/EmptyClassDefinition:
   Enabled: false
 
 Style/NumericLiterals:
