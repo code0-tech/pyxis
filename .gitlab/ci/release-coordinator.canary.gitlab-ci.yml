@@ -1,5 +1,5 @@
 .release-coordinator:canary:stages:
-  - release-coordinator:canary:notify-start
+  - release-coordinator:canary:prepare
   - release-coordinator:canary:build
   - release-coordinator:canary:publish
   - release-coordinator:canary:notify-finish
@@ -11,9 +11,20 @@
 release-coordinator:canary:notify-start:
   extends:
     - .release-coordinator:canary
-  stage: release-coordinator:canary:notify-start
+  stage: release-coordinator:canary:prepare
   script:
     - bin/pyxis internal notify_new_coordinator --coordinator-pipeline-id $CI_PIPELINE_ID
+  variables:
+    DRY_RUN: "false"
+
+release-coordinator:canary:check:
+  extends:
+    - .release-coordinator:canary
+  stage: release-coordinator:canary:prepare
+  needs:
+    - release-coordinator:canary:notify-start
+  script:
+    - bin/pyxis internal check_canary_release --build-id-to-promote $BUILD_ID_TO_PROMOTE
   variables:
     DRY_RUN: "false"
 

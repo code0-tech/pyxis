@@ -76,6 +76,20 @@ module Pyxis
           #{pipeline.web_url}
         DESC
       end
+
+      desc 'check_canary_release', ''
+      method_option :build_id_to_promote, required: true, type: :numeric
+      def check_canary_release
+        check = Pyxis::Checks::CanaryRelease.new(options[:build_id_to_promote])
+
+        severity = check.pass? ? :info : :error
+
+        Pyxis::DiscordClient.new.send_notification(check.status_message, severity)
+
+        puts check.status_message
+
+        exit(false) unless check.pass?
+      end
     end
   end
 end
