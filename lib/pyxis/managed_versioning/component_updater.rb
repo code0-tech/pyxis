@@ -126,6 +126,7 @@ module Pyxis
           conclusions = GithubClient.octokit
                                     .check_runs_for_ref(component.github_path, commit)
                                     .check_runs
+                                    .select { |run| check_run_on_default_branch?(component, run) }
                                     .map(&:conclusion)
           !conclusions.empty? && conclusions.all? { |conclusion| conclusion == 'success' }
         end
@@ -133,6 +134,13 @@ module Pyxis
         logger.debug('Filtered commits for passing checks', commits: filtered_commits)
 
         filtered_commits
+      end
+
+      def check_run_on_default_branch?(component, run)
+        GithubClient.octokit.check_suite(
+          component.github_path,
+          run.check_suite.id
+        ).head_branch == component.default_branch
       end
 
       def version_update_loop?(update_title)
