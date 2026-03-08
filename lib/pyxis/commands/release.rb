@@ -3,8 +3,11 @@
 module Pyxis
   module Commands
     class Release < Thor
-      include SemanticLogger::Loggable
       include PermissionHelper
+
+      no_commands do
+        include SemanticLogger::Loggable
+      end
 
       desc 'create_canary', 'Promote an experimental build to canary'
       exclusive do
