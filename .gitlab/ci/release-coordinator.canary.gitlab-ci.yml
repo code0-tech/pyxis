@@ -83,7 +83,7 @@ release-coordinator:canary:notify-publish-pending:
   stage: release-coordinator:canary:publish
   needs: !reference [release-coordinator:canary:publish, needs]
   script:
-    - bin/pyxis internal release_notify_publish_pending
+    - bin/pyxis internal release_notify_publish_pending --coordinator-pipeline-id $CI_PIPELINE_ID
 
 release-coordinator:canary:publish-containers:
   extends:
