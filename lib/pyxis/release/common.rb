@@ -17,6 +17,7 @@ module Pyxis
         container_tag = component_info.find_container_tag_for_build_id
         container_tags = component_info.find_manifests.map do |manifest|
           next nil unless CONTAINER_IMAGES_TO_RELEASE.include?(manifest.first.to_sym)
+          next nil if manifest.length != 1 && manifest.last == 'cloud'
 
           next "#{manifest.first}:#{container_tag}" if manifest.length == 1
 
