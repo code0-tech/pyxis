@@ -74,7 +74,8 @@ module Pyxis
         logger.info('Starting release to codezero repository', tag: component_info.find_container_tag_for_build_id)
 
         release_version = component_info.find_container_tag_for_build_id
-        reticulum_sha = component_info.execute(filter_components: [:reticulum])[:reticulum]
+        component_versions = component_info.execute
+        reticulum_sha = component_versions[:reticulum]
 
         compose_path = 'docker-compose/docker-compose.yml'
         env_path = 'docker-compose/.env'
@@ -121,10 +122,16 @@ module Pyxis
           Project::Codezero.default_branch
         )
 
+        component_version_string = 'Versions of each component'
+        component_versions.each do |component, version|
+          component_version_string += "\n#{component}: #{version}"
+        end
+
         GithubClient.octokit.create_release(
           Project::Codezero.github_path,
           release_version,
           name: release_version,
+          body: component_version_string,
           prerelease: prerelease
         )
       end
