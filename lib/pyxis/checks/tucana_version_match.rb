@@ -12,7 +12,7 @@ module Pyxis
       end
 
       def perform_check!
-        [sagittarius_version, aquila_version, draco_version, taurus_version].uniq.size == 1
+        [sagittarius_version, aquila_version, draco_version, taurus_version, velorum_version].uniq.size == 1
       end
 
       def status_message
@@ -25,6 +25,7 @@ module Pyxis
         message << "aquila: #{aquila_version}"
         message << "draco: #{draco_version}"
         message << "taurus: #{taurus_version}"
+        message << "velorum: #{velorum_version}"
 
         message.join("\n")
       end
@@ -83,7 +84,24 @@ module Pyxis
         )
       end
 
+      def velorum_version
+        @velorum_version ||= from_uv_lockfile(
+          Base64.decode64(
+            GithubClient.octokit.contents(
+              Project::Velorum.github_path,
+              path: 'uv.lock',
+              ref: executed_component_info[:velorum]
+            ).content
+          )
+        )
+      end
+
       def from_cargo_lockfile(lockfile)
+        toml = TomlRB.parse(lockfile, symbolize_keys: true)
+        toml[:package].find { |package| package[:name] == 'tucana' }[:version]
+      end
+
+      def from_uv_lockfile(lockfile)
         toml = TomlRB.parse(lockfile, symbolize_keys: true)
         toml[:package].find { |package| package[:name] == 'tucana' }[:version]
       end
