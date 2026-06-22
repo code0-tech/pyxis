@@ -32,7 +32,7 @@ module Pyxis
     end
 
     def self.components
-      %i[aquila draco sagittarius sculptor taurus]
+      %i[aquila draco sagittarius sculptor taurus velorum]
     end
 
     def self.get_project(project)

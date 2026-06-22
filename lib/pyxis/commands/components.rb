@@ -41,6 +41,7 @@ module Pyxis
       method_option :sagittarius_sha, desc: 'Commit SHA of sagittarius to build', type: :string
       method_option :sculptor_sha, desc: 'Commit SHA of sculptor to build', type: :string
       method_option :taurus_sha, desc: 'Commit SHA of taurus to build', type: :string
+      method_option :velorum_sha, desc: 'Commit SHA of velorum to build', type: :string
       def build
         assert_executed_by_known_team_member!
 
@@ -50,6 +51,7 @@ module Pyxis
           sagittarius: options[:sagittarius_sha],
           sculptor: options[:sculptor_sha],
           taurus: options[:taurus_sha],
+          velorum: option[:velorum_sha],
         }.compact
 
         pipeline = Pyxis::Services::CreateReticulumBuildService.new(version_overrides).execute

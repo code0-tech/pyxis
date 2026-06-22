@@ -84,9 +84,9 @@ module Pyxis
 
         severity = check.pass? ? :info : :error
 
-        Pyxis::DiscordClient.new.send_notification(check.status_message, severity)
-
         puts check.status_message
+
+        Pyxis::DiscordClient.new.send_notification(check.status_message, severity)
 
         exit(false) unless check.pass?
       end
