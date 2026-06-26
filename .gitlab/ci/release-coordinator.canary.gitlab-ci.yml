@@ -111,6 +111,8 @@ release-coordinator:canary:notify-finish:
   extends:
     - .release-coordinator:canary
   stage: release-coordinator:canary:notify-finish
+  needs:
+    - release-coordinator:canary:publish-release
   script:
     - bin/pyxis internal notify_finish_coordinator --coordinator-pipeline-id $CI_PIPELINE_ID
   variables:
