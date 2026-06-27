@@ -51,7 +51,7 @@ module Pyxis
           sagittarius: options[:sagittarius_sha],
           sculptor: options[:sculptor_sha],
           taurus: options[:taurus_sha],
-          velorum: option[:velorum_sha],
+          velorum: options[:velorum_sha],
         }.compact
 
         pipeline = Pyxis::Services::CreateReticulumBuildService.new(version_overrides).execute
