@@ -12,7 +12,7 @@ module Pyxis
       end
 
       def perform_check!
-        [sagittarius_version, aquila_version, draco_version, taurus_version, velorum_version].uniq.size == 1
+        [sagittarius_version, aquila_version, taurus_version, velorum_version].uniq.size == 1
       end
 
       def status_message
@@ -23,7 +23,6 @@ module Pyxis
         message << ''
         message << "sagittarius: #{sagittarius_version}"
         message << "aquila: #{aquila_version}"
-        message << "draco: #{draco_version}"
         message << "taurus: #{taurus_version}"
         message << "velorum: #{velorum_version}"
 
@@ -55,18 +54,6 @@ module Pyxis
               Project::Aquila.github_path,
               path: 'Cargo.lock',
               ref: executed_component_info[:aquila]
-            ).content
-          )
-        )
-      end
-
-      def draco_version
-        @draco_version ||= from_cargo_lockfile(
-          Base64.decode64(
-            GithubClient.octokit.contents(
-              Project::Draco.github_path,
-              path: 'Cargo.lock',
-              ref: executed_component_info[:draco]
             ).content
           )
         )

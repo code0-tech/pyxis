@@ -47,7 +47,6 @@ components:update:
     matrix:
       - COMPONENT:
           - aquila
-          - draco
           - sagittarius
           - sculptor
           - taurus
