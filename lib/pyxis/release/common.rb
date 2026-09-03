@@ -11,7 +11,7 @@ module Pyxis
 
       CONTAINER_RELEASE_PUBLISH_USER = 'code0-release-tools'
 
-      CONTAINER_IMAGES_TO_RELEASE = Project.components + %i[config-generator]
+      CONTAINER_IMAGES_TO_RELEASE = Project.components + %i[config-generator sagittarius-gateway]
 
       def copy_container_images_to_release_registry(component_info)
         container_tag = component_info.find_container_tag_for_build_id

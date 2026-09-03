@@ -118,9 +118,9 @@ module Pyxis
             .sort
             .map { |job| job.split(': ') }
             .map do |image|
-          next image if image.length == 1
+          next [image.first.gsub(':', '-')] if image.length == 1
 
-          [image.first, image.last.delete_prefix('[').delete_suffix(']')]
+          [image.first.gsub(':', '-'), image.last.delete_prefix('[').delete_suffix(']')]
         end
       end
 
