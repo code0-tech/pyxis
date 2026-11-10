@@ -22,14 +22,14 @@ default:
 build-image:
   stage: build
   image: docker:28.5.0
-  tags:
-    - infra
   variables:
     DOCKER_MIRROR: https://mirror.gcr.io
-    DOCKER_OPTIONS: "--registry-mirror ${DOCKER_MIRROR}"
+    DOCKER_OPTIONS: "--registry-mirror ${DOCKER_MIRROR} --mtu 1420"
     DOCKER_DRIVER: overlay2
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: /certs
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   services:
     - name: docker:29.2.1-dind
       alias: docker
