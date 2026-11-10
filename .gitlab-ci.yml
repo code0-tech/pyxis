@@ -17,7 +17,7 @@ workflow:
 default:
   image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   tags:
-    - infra
+    - infra-release-tools
 
 build-image:
   stage: build
