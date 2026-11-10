@@ -22,6 +22,8 @@ default:
 build-image:
   stage: build
   image: docker:28.5.0
+  tags:
+    - infra
   variables:
     DOCKER_MIRROR: https://mirror.gcr.io
     DOCKER_OPTIONS: "--registry-mirror ${DOCKER_MIRROR}"
