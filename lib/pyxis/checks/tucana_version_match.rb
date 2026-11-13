@@ -12,7 +12,13 @@ module Pyxis
       end
 
       def perform_check!
-        [sagittarius_version, aquila_version, taurus_version, velorum_version].uniq.size == 1
+        [
+          sagittarius_version,
+          sagittarius_gateway_version,
+          aquila_version,
+          taurus_version,
+          velorum_version
+        ].uniq.size == 1
       end
 
       def status_message
@@ -22,6 +28,7 @@ module Pyxis
         message << "#{icon} Components use different tucana versions"
         message << ''
         message << "sagittarius: #{sagittarius_version}"
+        message << "sagittarius-gateway: #{sagittarius_gateway_version}"
         message << "aquila: #{aquila_version}"
         message << "taurus: #{taurus_version}"
         message << "velorum: #{velorum_version}"
@@ -45,6 +52,18 @@ module Pyxis
                                                       .find { |spec| spec.name == 'tucana' }
                                                       .version
                                                       .to_s
+      end
+
+      def sagittarius_gateway_version
+        @sagittarius_gateway_version ||= from_cargo_lockfile(
+          Base64.decode64(
+            GithubClient.octokit.contents(
+              Project::Sagittarius.github_path,
+              path: 'Cargo.lock',
+              ref: executed_component_info[:sagittarius]
+            ).content
+          )
+        )
       end
 
       def aquila_version
