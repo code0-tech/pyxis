@@ -9,7 +9,7 @@ module Pyxis
           'Canary release',
           [
             TucanaVersionMatch.new(info),
-            OpenIssues.new('release blocking', ['blocks-releases'])
+            OpenIssues.new('release blocking', field: 'Blocker', values: ['Release', 'Release: Canary'])
           ]
         )
       end
