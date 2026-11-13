@@ -9,10 +9,11 @@ module Pyxis
     end
 
     def with_faraday_dry_run_bypass
+      previous = @faraday_dry_run_bypass
       @faraday_dry_run_bypass = true
       yield
     ensure
-      @faraday_dry_run_bypass = false
+      @faraday_dry_run_bypass = previous
     end
 
     def faraday_dry_run_bypass?
